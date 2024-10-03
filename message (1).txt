@@ -1,0 +1,181 @@
+const { SlashCommandBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, Events, PermissionsBitField, ChannelType,  time, TimestampStyles, PermissionFlagsBits, Embed} = require('discord.js');
+const client = require("../../index");
+const { EmbedBuilder } = require('@discordjs/builders');
+const allowedRoleId = ['654971797351038996']
+const zamknietyticketkategoria = '1260276353198981120'
+const wait = require('node:timers/promises').setTimeout;
+
+module.exports = {
+    data: new SlashCommandBuilder().setName('ticket').setDescription('Panel ticketów'),
+
+    async execute(interaction) {
+        const moderacja = new ButtonBuilder()
+            .setCustomId('Moderacja')
+            .setLabel('Moderacja')
+            .setStyle(ButtonStyle.Secondary);
+
+        const rekruter = new ButtonBuilder()
+            .setCustomId('Rekruter')
+            .setLabel('Rekruter')
+            .setStyle(ButtonStyle.Secondary);
+
+        const row = new ActionRowBuilder()
+            .addComponents(moderacja, rekruter);
+
+            const pierwszy = new EmbedBuilder().setTitle('> PODANIA').setDescription(`> - -# Nie posiadamy ograniczeń wiekowych.\n> - -# Wzór podania w dalszej części.\n> - -# Tutaj napiszesz podanie na wszystko.`).setColor(0x8400ff)
+
+        await interaction.reply({embeds: [pierwszy], components: [row]});
+        }
+    }
+client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isButton()) return;
+
+    const user = interaction.user;
+
+    if (interaction.customId === 'zamek') {
+           const end = new EmbedBuilder().setColor(0xFFFF00).setDescription(`⏳Trwa zamykanie ticketu ...`)
+            const endd = new EmbedBuilder().setColor(0x24a424).setDescription(`**Ticket pomyślnie zamknięty**\n\`\`\`${user.username} (${interaction.user.id})\`\`\``)
+        await interaction.reply({embeds: [end]});
+		await wait(2_000);
+		await interaction.editReply({embeds: [endd]});
+
+        await interaction.channel.setParent(zamknietyticketkategoria);
+        const channel = interaction.channel;
+        await channel.permissionOverwrites.set([
+            {
+                id: interaction.guild.id,
+			    deny: [PermissionsBitField.Flags.ViewChannel],
+            },
+        ]);
+    }   
+
+    if (interaction.customId === 'kosz') {
+        if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+            const uprawnienia = new EmbedBuilder().setColor(0xFF0000).setDescription(`\`\`\`\ Brak uprawnień \`\`\``)
+            return interaction.reply({embeds: [uprawnienia], ephemeral: true});
+        }
+        interaction.channel.delete() 
+ 
+    }
+
+    if (interaction.customId === 'Moderacja') {
+        const modal = new ModalBuilder()
+            .setCustomId('myModal')
+            .setTitle('PODANIE NA MODERATORA');
+
+        const favoriteColorInput = new TextInputBuilder()
+            .setCustomId('a')
+            .setLabel("ILE CZASU MOŻESZ POŚWIĘCIĆ NA MODEROWANIE?")
+            .setStyle(TextInputStyle.Short)
+            .setPlaceholder('Przykład: 6h dziennie')
+            .setRequired(true);
+
+        const hobbiesInput = new TextInputBuilder()
+            .setCustomId('b')
+            .setLabel("MASZ DOŚWIADOCZENIE W MODEROWANIU?")
+            .setPlaceholder('Przykład: Napisz co potrafisz zrobić')
+            .setStyle(TextInputStyle.Paragraph)
+            .setRequired(true);
+        const cosOsobie = new TextInputBuilder()
+            .setCustomId('c')
+            .setLabel("NAPISZ COŚ O SOBIE W 3 ZDANIACH")
+            .setPlaceholder('Przykład: imię,wiek,zainteresowania')
+            .setStyle(TextInputStyle.Paragraph)
+            .setRequired(true);
+        const plan = new TextInputBuilder()
+            .setCustomId('d')
+            .setLabel("JAKI MASZ PLAN NA ROZWÓJ SERWERA?")
+            .setPlaceholder("W JAKĄ STRONĘ BYŚ POSZEDŁ?")
+            .setStyle(TextInputStyle.Paragraph)
+            .setRequired(true);
+        const zmiany = new TextInputBuilder()
+            .setCustomId('f')
+            .setLabel("CO ZMIENIŁBYŚ(A) NA SERWERZE?")
+            .setPlaceholder("CO DO POPRAWY/ZMIANY")
+            .setStyle(TextInputStyle.Paragraph)
+            .setRequired(true);
+
+        const firstActionRow = new ActionRowBuilder().addComponents(favoriteColorInput);
+        const secondActionRow = new ActionRowBuilder().addComponents(hobbiesInput);
+        const thirdActionRow = new ActionRowBuilder().addComponents(cosOsobie);
+        const fourthActionRow = new ActionRowBuilder().addComponents(plan);
+        const fifthActionRow  = new ActionRowBuilder().addComponents(zmiany);
+
+        modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow, fifthActionRow);
+
+        await interaction.showModal(modal);
+    }
+});
+
+
+client.on(Events.InteractionCreate, async (interaction) => {
+    if (interaction.customId === 'myModal') {
+    
+    if (!interaction.isModalSubmit()) return;
+
+        const favoriteColor = interaction.fields.getTextInputValue('a');
+        const hobbies = interaction.fields.getTextInputValue('b');
+        const cosOsobie = interaction.fields.getTextInputValue('c');
+        const plan = interaction.fields.getTextInputValue('d');
+        const zmiany = interaction.fields.getTextInputValue('f');
+
+            // Tworzenie kanału
+            const guild = interaction.guild;
+            const member = interaction.member;
+            const user = interaction.user;
+            const channelName = `🎨・${user.username}`;
+
+            const date = user.createdAt; 
+                const relative = time(date, TimestampStyles.RelativeTime); 
+
+                const datee = member.joinedAt;
+                const relativee = time(datee, TimestampStyles.RelativeTime); 
+
+            guild.channels.create({
+                name: `${channelName}`,
+                type: ChannelType.GuildText,
+                parent: `1206669569465393174`,
+                permissionOverwrites: [
+                    {
+                        id: interaction.guild.id,
+                        deny: [PermissionsBitField.Flags.ViewChannel],
+                    },
+                    {
+                        id: interaction.member.id,
+                        allow: [PermissionsBitField.Flags.ViewChannel],
+                    },
+                ],
+            }).then(channel => {
+                const powitaniemoderacja = new EmbedBuilder().setColor(0x8400ff).setDescription('**Wysłano podanie!** Poczekaj __cierpliwie__ na odpowiedz a ktoś niebawem zajmie się podaniem.\n\n**Inforamacje o użytkowniku:**\n')
+                .addFields(
+                  //  { name: '\u200B', value: '\u200B' },
+                    { name: 'Indyfikator Discord', value: `${member.id}`, inline: true },
+                    { name: 'Stworzył Konto', value: `${relative}`, inline: true },
+                ) 
+                .addFields({ name: 'Dołączył', value: `${relativee}`, inline: true })
+                const modall = new EmbedBuilder().setDescription(`**Ile czasu możesz poświęcić na moderowanie?**\n \`\`\`${favoriteColor}\`\`\`\n**Masz doświadczenie w moderowaniu?**\`\`\`\n${hobbies}\`\`\`\n**Napisz coś o sobie w min 3 zdaniach.**\`\`\`\n${cosOsobie}\`\`\`\n**Jaki masz plan na rozwój serwera?**\`\`\`\n${plan}\`\`\`\n**Co zmieniłbyś(a) na serwerze?**\n\`\`\`${zmiany}\`\`\`\ `)
+                interaction.reply({content: `Pomyślnie złożono podanie na moderatora <#${channel.id}>`, ephemeral: true})
+
+
+
+
+
+
+                const zamek = new ButtonBuilder()
+                .setCustomId('zamek')
+                .setEmoji('🔒')
+                .setStyle(ButtonStyle.Secondary);
+
+                        const kosz = new ButtonBuilder()
+                        .setCustomId('kosz')
+                        .setEmoji('🗑️')
+                        .setStyle(ButtonStyle.Secondary);
+                        const roww = new ActionRowBuilder()
+                                .addComponents(zamek, kosz);
+            
+                channel.send({content: `**Witaj!** ${member}`, embeds: [powitaniemoderacja, modall], components: [roww]});
+            }).catch(console.error);
+        }
+}
+)
+
